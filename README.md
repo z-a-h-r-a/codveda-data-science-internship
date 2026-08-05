@@ -30,10 +30,11 @@ codveda-data-science-internship/
 │   ├── classification_results.csv # model comparison (Acc / P / R / F1 / AUC)
 │   └── figures/                   # predicted-vs-actual & ROC plots
 └── level3/
-    ├── task1_sentiment_nn.py      # NLP + neural network (sentiment)
-    ├── nlp_results.csv            # NN vs Logistic Regression (Acc / F1)
-    ├── classification_report.csv  # per-class precision / recall / F1 (MLP)
-    └── figures/                   # confusion matrix, loss curve, comparison
+    ├── task2_nlp_classification.py  # NLP + classification de texte (sentiment)
+    ├── task3_neural_network.py      # reseau de neurones Keras (iris)
+    ├── nlp_results.csv              # Naive Bayes vs Logistic Regression (Acc/F1)
+    ├── nn_results.csv               # hyperparameter tuning table (validation acc)
+    └── figures/                     # confusion matrices, courbes acc/loss, tuning
 ```
 
 ## Level 1
@@ -79,27 +80,34 @@ codveda-data-science-internship/
 
 ## Level 3
 
-### Task 1 - NLP + Neural Network (sentiment classification)
-- NLP preprocessing: cleaned the raw texts (strip, lowercase, drop
-  emojis/punctuation, keep hashtag words), then grouped the 279 fine-grained
-  sentiment labels (mostly 1-5 rows each) into **Positive / Negative /
-  Neutral** with a keyword-driven mapping (e.g. Joy, Gratitude -> Positive;
-  Sadness, Despair -> Negative; Curiosity, Confusion -> Neutral).
-- Features: TF-IDF word vectors (unigrams + bigrams, English stop words
-  removed, sub-linear tf scaling) -> 1494 features.
-- Neural Network: scikit-learn **MLPClassifier** (2 hidden layers of 128-64
-  neurons, ReLU, Adam, L2 alpha=0.01, early stopping) vs a Logistic
-  Regression baseline.
-- Best model: **Neural Network (MLP)** (Accuracy = 0.79, F1 macro = 0.58),
-  confirmed by 5-fold CV (0.81 vs 0.76 for Logistic Regression).
-- 5-fold CV on the whole dataset: **MLP acc = 0.81 / F1-macro = 0.69** vs
-  **LogReg acc = 0.76 / F1-macro = 0.59**.
-- Confusion matrix, MLP training-loss curve and an accuracy/F1 bar chart are
-  saved under `level3/figures/`; metrics in `level3/nlp_results.csv` and
-  `level3/classification_report.csv`.
-- Known limitation: the Neutral class is poorly learned (only ~97 rows; recall
-  ~0.05) because the synthetic texts are highly metaphorical and heavily
-  imbalanced toward Positive.
+### Task 2 - NLP / Classification de texte (sentiment dataset)
+- Pretraitement texte avec **nltk** : tokenisation (`word_tokenize`),
+  suppression des stopwords, **stemming** (Porter) et **lemmatisation**
+  (WordNet).
+- Regroupement des 279 labels fins du dataset en **Positive / Negative /
+  Neutral** par matching de mots-cles.
+- Vectorisation **TF-IDF** (unigrammes + bigrammes, `sublinear_tf`) puis
+  entrainement de **Naive Bayes (Multinomial)** et **Logistic Regression**.
+- Evaluation **precision / recall / F1** par classe + moyennes macro/weighted,
+  matrices de confusion sauvegardees sous `level3/figures/`.
+- Resultats : **Naive Bayes (Acc = 0.78)** > Logistic Regression (0.76).
+- Ablation montrant l'apport du pretraitement NLP (LogReg, TF-IDF) :
+  texte brut 0.70 -> sans stemming 0.73 -> pipeline complet 0.76.
+- Metrics dans `level3/nlp_results.csv`.
+
+### Task 3 - Reseaux de neurones (iris dataset)
+- NOTE : TensorFlow n'a pas de wheel pour Python 3.14 sur cette machine, le
+  script utilise donc **Keras 3 avec le backend PyTorch (CPU)** - API Keras
+  identique a TensorFlow/Keras.
+- Reseau **feed-forward** `Input(4) -> Dense(16-32, relu) -> Dense(3,
+  softmax)`, optimiseur Adam, `sparse_categorical_crossentropy`, entrainement
+  par retropropagation avec `EarlyStopping`.
+- Courbes **accuracy / loss** (train vs test) sauvegardees sous
+  `level3/figures/nn_training_curves.png`.
+- **Tuning d'hyperparametres** : grille 6 configs (units cachees x learning
+  rate), meilleure config 32 units / lr=1e-2 (val acc = 0.93).
+- Resultat final sur le test : **Accuracy = 0.97** (F1 macro = 0.97).
+- Metrics dans `level3/nn_results.csv`.
 
 ## Setup
 
@@ -119,5 +127,6 @@ python level2/task1_regression.py
 python level2/task2_classification.py
 
 # Level 3
-python level3/task1_sentiment_nn.py
+python level3/task2_nlp_classification.py
+python level3/task3_neural_network.py
 ```
